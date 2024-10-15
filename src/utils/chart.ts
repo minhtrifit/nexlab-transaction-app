@@ -2,14 +2,7 @@ export const totalSpending = 60700;
 export const totalIncome = 30518;
 
 export const chartSpendingData = {
-  labels: [
-    "gym",
-    "tickets",
-    "clothes",
-    "food&restaurants",
-    "travel",
-    "transport",
-  ],
+  labels: ["gym", "tickets", "clothes", "food", "travel", "transport"],
   datasets: [
     {
       label: "Total Spending",
@@ -36,14 +29,7 @@ export const chartSpendingData = {
 };
 
 export const chartIncomeData = {
-  labels: [
-    "gym",
-    "tickets",
-    "clothes",
-    "food&restaurants",
-    "travel",
-    "transport",
-  ],
+  labels: ["gym", "tickets", "clothes", "food", "travel", "transport"],
   datasets: [
     {
       label: "Total Spending",

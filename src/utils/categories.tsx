@@ -30,7 +30,7 @@ export const CATEGORIES: Record<string, CATEGORY_TYPE> = {
   },
   food: {
     name: "Food & Restaurants",
-    value: "food&restaurants",
+    value: "food",
     icon: <PiBowlFood size={25} />,
     bgColor: "#e65f40",
     textColor: "#91341f",

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { formatNumber } from "../helpers";
+import { formatNumber, getCategoryByValue } from "../helpers";
 import { TRANSACTION_TYPE } from "../types";
 
 interface PropType {
@@ -11,10 +11,12 @@ const HistoryCard = (props: PropType) => {
 
   const navigate = useNavigate();
 
+  const category = getCategoryByValue(history.category);
+
   return (
     <div
       className="w-full px-4 py-2 flex items-center justify-between rounded-md
-                    hover:cursor-pointer hover:bg-zinc-300"
+                    hover:cursor-pointer hover:bg-zinc-200"
       onClick={() => {
         navigate(`/detail/${history.id}`);
       }}
@@ -22,12 +24,12 @@ const HistoryCard = (props: PropType) => {
       <div className="h-full flex items-center gap-3">
         <div
           style={{
-            color: history.category.textColor,
-            backgroundColor: history.category.bgColor,
+            color: category?.textColor,
+            backgroundColor: category?.bgColor,
           }}
           className="w-[45px] h-[45px] rounded-md flex items-center justify-center"
         >
-          {history.category.icon}
+          {category?.icon}
         </div>
         <div>
           <h1 className="font-bold">{history.name}</h1>

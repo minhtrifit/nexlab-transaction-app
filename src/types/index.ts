@@ -7,10 +7,10 @@ export interface CATEGORY_TYPE {
 }
 
 export interface TRANSACTION_TYPE {
-  id: string | number;
+  id?: string;
   name: string;
   type: "in" | "out";
-  category: CATEGORY_TYPE;
+  category: string;
   date: string;
   amount: number;
 }
