@@ -1,7 +1,7 @@
 import Header from "../components/Header";
 import BackBtn from "../components/BackBtn";
 
-const Create = () => {
+const DetailTransaction = () => {
   return (
     <div>
       <Header>
@@ -11,4 +11,4 @@ const Create = () => {
   );
 };
 
-export default Create;
+export default DetailTransaction;
