@@ -2,18 +2,19 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 import { TRANSACTION_TYPE } from "../types";
+import { saveLocalStorage } from "../helpers";
 
 interface HistoryState {
   list: TRANSACTION_TYPE[];
   updateTransactions: (transactions: TRANSACTION_TYPE[]) => void;
-  addTransaction: (trans: TRANSACTION_TYPE) => TRANSACTION_TYPE[];
+  addTransaction: (trans: TRANSACTION_TYPE) => Promise<TRANSACTION_TYPE | null>;
   getTransactionById: (id: string) => TRANSACTION_TYPE | null;
   getTotalAmountByType: (type: "in" | "out") => number;
-  deleteTransaction: (id: string) => TRANSACTION_TYPE[] | null;
+  deleteTransaction: (id: string) => Promise<TRANSACTION_TYPE | null>;
   updateTransactionsById: (
     id: string,
     updatedTrans: TRANSACTION_TYPE
-  ) => TRANSACTION_TYPE[] | null;
+  ) => Promise<any>;
 }
 
 export const useHistoryStore = create<HistoryState>()(
@@ -21,18 +22,19 @@ export const useHistoryStore = create<HistoryState>()(
     list: [],
     updateTransactions: (transactions: TRANSACTION_TYPE[]) =>
       set((_) => ({ list: transactions })),
-    addTransaction: (trans: TRANSACTION_TYPE) => {
-      let updatedList: TRANSACTION_TYPE[] = [];
+    addTransaction: async (trans: TRANSACTION_TYPE) => {
+      try {
+        const { list } = get();
+        const newList = [...list, trans];
 
-      set((state) => {
-        updatedList = [...state.list, trans];
+        await saveLocalStorage("transactions", newList);
+        set((_) => ({ list: newList }));
 
-        return {
-          list: updatedList,
-        };
-      });
-
-      return updatedList;
+        return trans;
+      } catch (error) {
+        console.error("Create new transaction failed:", error);
+        return null;
+      }
     },
     getTransactionById: (id: string) => {
       const { list } = get();
@@ -51,57 +53,54 @@ export const useHistoryStore = create<HistoryState>()(
         );
       return total;
     },
-    deleteTransaction: (id: string) => {
-      let updatedList: TRANSACTION_TYPE[] = [];
+    deleteTransaction: async (id: string) => {
+      try {
+        const { list } = get();
 
-      set((state) => {
-        const transactionIndex = state.list.findIndex(
+        const transactionIndex = list.findIndex(
           (transaction) => transaction.id === id
         );
 
-        if (transactionIndex !== -1) {
-          updatedList = state.list.filter(
-            (transaction) => transaction.id !== id
-          );
-
-          return {
-            list: updatedList,
-          };
+        if (transactionIndex === -1) {
+          console.error("Not found transaction", id);
+          return null;
         }
 
-        return state;
-      });
+        const targetTrans = list[transactionIndex];
+        const updatedList = list.filter((transaction) => transaction.id !== id);
 
-      return updatedList.length > 0 ? updatedList : null;
+        await saveLocalStorage("transactions", updatedList);
+        set((_) => ({ list: updatedList }));
+
+        return targetTrans;
+      } catch (error) {
+        console.error("Delete transaction by id failed:", error);
+        return null;
+      }
     },
-    updateTransactionsById: (id: string, updatedTrans: TRANSACTION_TYPE) => {
-      let transactionIndex = -1;
-      const updatedList: TRANSACTION_TYPE[] = [];
+    updateTransactionsById: async (
+      id: string,
+      updatedTrans: TRANSACTION_TYPE
+    ) => {
+      const { list } = get();
 
-      set((state) => {
-        transactionIndex = state.list.findIndex(
-          (transaction) => transaction.id === id
-        );
+      const transactionIndex = list.findIndex(
+        (transaction) => transaction.id === id
+      );
 
-        if (transactionIndex !== -1) {
-          for (let i = 0; i < state.list.length; ++i) {
-            if (state.list[i].id === id) {
-              updatedList.push(updatedTrans);
-            } else {
-              updatedList.push(state.list[i]);
-            }
-          }
+      if (transactionIndex === -1) {
+        console.error("Not found transaction", id);
+        return null;
+      }
 
-          return {
-            list: updatedList,
-          };
-        }
+      const updatedList: TRANSACTION_TYPE[] = list.map((item) =>
+        item.id === id ? updatedTrans : item
+      );
 
-        return state;
-      });
+      await saveLocalStorage("transactions", updatedList);
+      set((_) => ({ list: updatedList }));
 
-      if (transactionIndex === -1) return null;
-      else return updatedList;
+      return updatedTrans;
     },
   }))
 );

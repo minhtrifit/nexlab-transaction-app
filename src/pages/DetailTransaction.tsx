@@ -8,11 +8,7 @@ import BackBtn from "../components/BackBtn";
 import CustomBtn from "../components/CustomBtn";
 
 import { TRANSACTION_TYPE } from "../types";
-import {
-  getCategoryByValue,
-  handleGetTransactionData,
-  saveLocalStorage,
-} from "../helpers";
+import { getCategoryByValue, handleGetTransactionData } from "../helpers";
 
 import { MdOutlineCalendarToday } from "react-icons/md";
 import { FaRegTrashAlt } from "react-icons/fa";
@@ -43,16 +39,16 @@ const DetailTransaction = () => {
     }
   };
 
-  const handleDeleteTransaction = (id: string | null) => {
+  const handleDeleteTransaction = async (id: string | null) => {
     if (
       confirm("Are you sure to delete this transaction?") == true &&
       id !== null
     ) {
-      console.log("Delete:", id);
-      const deletedTrans = deleteTransaction(id); // Transaction list after delete successfully
+      // console.log("Delete:", id);
+      const res = await deleteTransaction(id);
+      console.log("DELETE TRANS:", res);
 
-      if (deletedTrans !== null) {
-        saveLocalStorage("transactions", deletedTrans); // Save new data to local storage
+      if (res !== null) {
         navigate("/");
         toast.success("Delete transaction successfully");
       } else {
@@ -96,6 +92,9 @@ const DetailTransaction = () => {
         <span className="flex items-center gap-1">
           <p className="font-bold">Type:</p>{" "}
           {trans?.type === "in" ? "Money in" : "Money out"}
+        </span>
+        <span className="flex items-center gap-1">
+          <p className="font-bold">Amount:</p> {trans?.amount}
         </span>
         <span className="flex items-center gap-1">
           <p className="font-bold">Category:</p> {trans?.category}

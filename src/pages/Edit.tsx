@@ -11,7 +11,6 @@ import {
   formatDateInput,
   getCategoryByValue,
   handleGetTransactionData,
-  saveLocalStorage,
 } from "../helpers";
 
 import Header from "../components/Header";
@@ -64,18 +63,23 @@ const Edit = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const updatedTransaction = { ...form, date: formatDate(form.date) };
+    const updatedTransaction = {
+      ...form,
+      amount: Number(form.amount),
+      date: formatDate(form.date),
+    };
 
     if (updatedTransaction?.id) {
-      console.log(updatedTransaction);
+      // console.log(updatedTransaction);
 
-      const updatedTransactions = updateTransactionsById(
+      const res = await updateTransactionsById(
         updatedTransaction?.id,
         updatedTransaction
       );
 
-      if (updatedTransactions !== null) {
-        saveLocalStorage("transactions", updatedTransactions); // Save new data to local storage
+      console.log("EDIT TRANS", res);
+
+      if (res !== null) {
         navigate(`/detail/${updatedTransaction?.id}`);
         toast.success("Update transaction successfully");
       } else {

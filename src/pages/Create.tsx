@@ -6,7 +6,7 @@ import useScrollToRef from "../hooks/useScrollToRef";
 
 import { TRANSACTION_TYPE } from "../types";
 import { CATEGORIES } from "../utils/categories";
-import { formatDate, saveLocalStorage } from "../helpers";
+import { formatDate } from "../helpers";
 
 import Header from "../components/Header";
 import BackBtn from "../components/BackBtn";
@@ -37,14 +37,14 @@ const Create = () => {
       date: formatDate(form.date),
     };
 
-    console.log(newTransaction);
-    const newTransactions = addTransaction(newTransaction);
-    console.log(newTransactions);
-    saveLocalStorage("transactions", newTransactions); // Save new data to local storage
+    const res = await addTransaction(newTransaction);
+    console.log("CREATE TRANS:", res);
 
     // Notification
+    if (res !== null) toast.success("Create new transaction successfully");
+    else toast.error("Create new transaction failed");
+
     scrollToTarget();
-    toast.success("Create new transaction successfully");
 
     // Reset form
     setForm({

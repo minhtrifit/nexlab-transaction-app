@@ -46,29 +46,40 @@ export const formatDateInput = (dateStr: string) => {
   return `${year}-${month}-${day}`;
 };
 
-export const getLocalStorage = (key: string) => {
-  const dataStr = localStorage.getItem(key);
+export const getLocalStorage = (key: string): Promise<any | null> => {
+  return new Promise((resolve) => {
+    const dataStr = localStorage.getItem(key);
 
-  if (dataStr === null) return null;
-  else {
-    const data = JSON.parse(dataStr);
-    return data;
-  }
+    if (dataStr === null) {
+      resolve(null);
+    } else {
+      const data = JSON.parse(dataStr);
+      resolve(data);
+    }
+  });
 };
 
-export const saveLocalStorage = (key: string, data: any) => {
-  localStorage.setItem(key, JSON.stringify(data));
-  return data;
+export const saveLocalStorage = (key: string, data: any): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+      resolve(data);
+    } catch (error) {
+      reject(error);
+    }
+  });
 };
 
-export const handleGetTransactionData = (
+export const handleGetTransactionData = async (
   TRANSACTION_DATA: TRANSACTION_TYPE[],
   updateTransactions: (transactions: TRANSACTION_TYPE[]) => void
 ) => {
-  const checkData = getLocalStorage("transactions");
+  const res = await getLocalStorage("transactions");
 
-  if (checkData === null) {
-    const data = saveLocalStorage("transactions", TRANSACTION_DATA);
+  if (res === null) {
+    const data = await saveLocalStorage("transactions", TRANSACTION_DATA);
     updateTransactions(data);
-  } else updateTransactions(checkData);
+  } else {
+    updateTransactions(res);
+  }
 };
