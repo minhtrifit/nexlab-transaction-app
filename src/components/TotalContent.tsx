@@ -16,6 +16,7 @@ const TotalContent = () => {
   const [total, setTotal] = useState<number>(0);
   const [view, setView] = useState<"spending" | "income">("spending");
 
+  const histories = useHistoryStore((state) => state.list);
   const getTotalAmountByType = useHistoryStore(
     (state) => state.getTotalAmountByType
   );
@@ -33,7 +34,7 @@ const TotalContent = () => {
       setTotal(totalValue);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view]);
+  }, [histories, view]);
 
   return (
     <div className="flex flex-col items-center gap-3">

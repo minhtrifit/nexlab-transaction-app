@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { toast } from "react-toastify";
 import { useHistoryStore } from "../store/History";
 import useScrollToRef from "../hooks/useScrollToRef";
 
 import { TRANSACTION_TYPE } from "../types";
 import { CATEGORIES } from "../utils/categories";
-import { formatDate } from "../helpers";
+import { formatDate, saveLocalStorage } from "../helpers";
 
 import Header from "../components/Header";
 import BackBtn from "../components/BackBtn";
@@ -30,14 +32,19 @@ const Create = () => {
 
     const newTransaction = {
       ...form,
+      id: uuidv4(),
       amount: Number(form.amount),
       date: formatDate(form.date),
     };
 
     console.log(newTransaction);
-    addTransaction(newTransaction);
+    const newTransactions = addTransaction(newTransaction);
+    console.log(newTransactions);
+    saveLocalStorage("transactions", newTransactions); // Save new data to local storage
 
+    // Notification
     scrollToTarget();
+    toast.success("Create new transaction successfully");
 
     // Reset form
     setForm({

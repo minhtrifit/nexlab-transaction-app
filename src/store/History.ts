@@ -1,71 +1,39 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { v4 as uuidv4 } from "uuid";
 
-import { CATEGORIES } from "../utils/categories";
 import { TRANSACTION_TYPE } from "../types";
 
 interface HistoryState {
   list: TRANSACTION_TYPE[];
-  addTransaction: (trans: TRANSACTION_TYPE) => void;
+  updateTransactions: (transactions: TRANSACTION_TYPE[]) => void;
+  addTransaction: (trans: TRANSACTION_TYPE) => TRANSACTION_TYPE[];
   getTransactionById: (id: string) => TRANSACTION_TYPE | null;
   getTotalAmountByType: (type: "in" | "out") => number;
+  deleteTransaction: (id: string) => TRANSACTION_TYPE[] | null;
+  updateTransactionsById: (
+    id: string,
+    updatedTrans: TRANSACTION_TYPE
+  ) => TRANSACTION_TYPE[] | null;
 }
 
 export const useHistoryStore = create<HistoryState>()(
   devtools((set, get) => ({
-    list: [
-      {
-        id: uuidv4(),
-        name: "Sport",
-        type: "out",
-        category: CATEGORIES.gym.value,
-        date: "15/10/2024",
-        amount: 2000,
-      },
-      {
-        id: uuidv4(),
-        name: "Send Money",
-        type: "in",
-        category: CATEGORIES.tickets.value,
-        date: "5/8/2024",
-        amount: 55000,
-      },
-      {
-        id: uuidv4(),
-        name: "Louis Vuituoi",
-        type: "out",
-        category: CATEGORIES.clothes.value,
-        date: "4/3/2024",
-        amount: 3380,
-      },
-      {
-        id: uuidv4(),
-        name: "Hadilao",
-        type: "out",
-        category: CATEGORIES.food.value,
-        date: "15/10/2024",
-        amount: 10000,
-      },
-      {
-        id: uuidv4(),
-        name: "Haiwai",
-        type: "out",
-        category: CATEGORIES.travel.value,
-        date: "14/4/2024",
-        amount: 7000,
-      },
-      {
-        id: uuidv4(),
-        name: "Company Office",
-        type: "in",
-        category: CATEGORIES.transport.value,
-        date: "8/3/2024",
-        amount: 24,
-      },
-    ],
-    addTransaction: (trans: TRANSACTION_TYPE) =>
-      set((state) => ({ list: [...state.list, trans] })),
+    list: [],
+    updateTransactions: (transactions: TRANSACTION_TYPE[]) =>
+      set((_) => ({ list: transactions })),
+    addTransaction: (trans: TRANSACTION_TYPE) => {
+      let updatedList: TRANSACTION_TYPE[] = [];
+
+      set((state) => {
+        updatedList = [...state.list, trans];
+
+        return {
+          list: updatedList,
+        };
+      });
+
+      return updatedList;
+    },
     getTransactionById: (id: string) => {
       const { list } = get();
 
@@ -82,6 +50,58 @@ export const useHistoryStore = create<HistoryState>()(
           0
         );
       return total;
+    },
+    deleteTransaction: (id: string) => {
+      let updatedList: TRANSACTION_TYPE[] = [];
+
+      set((state) => {
+        const transactionIndex = state.list.findIndex(
+          (transaction) => transaction.id === id
+        );
+
+        if (transactionIndex !== -1) {
+          updatedList = state.list.filter(
+            (transaction) => transaction.id !== id
+          );
+
+          return {
+            list: updatedList,
+          };
+        }
+
+        return state;
+      });
+
+      return updatedList.length > 0 ? updatedList : null;
+    },
+    updateTransactionsById: (id: string, updatedTrans: TRANSACTION_TYPE) => {
+      let transactionIndex = -1;
+      const updatedList: TRANSACTION_TYPE[] = [];
+
+      set((state) => {
+        transactionIndex = state.list.findIndex(
+          (transaction) => transaction.id === id
+        );
+
+        if (transactionIndex !== -1) {
+          for (let i = 0; i < state.list.length; ++i) {
+            if (state.list[i].id === id) {
+              updatedList.push(updatedTrans);
+            } else {
+              updatedList.push(state.list[i]);
+            }
+          }
+
+          return {
+            list: updatedList,
+          };
+        }
+
+        return state;
+      });
+
+      if (transactionIndex === -1) return null;
+      else return updatedList;
     },
   }))
 );

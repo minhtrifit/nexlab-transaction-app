@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useHistoryStore } from "../store/History";
 import { FaUser } from "react-icons/fa";
@@ -8,9 +9,19 @@ import { TRANSACTION_TYPE } from "../types";
 import Header from "../components/Header";
 import TotalContent from "../components/TotalContent";
 import HistoryCard from "../components/HistoryCard";
+import { handleGetTransactionData } from "../helpers";
+import { TRANSACTION_DATA } from "../utils/transactions";
 
 const Home = () => {
   const histories = useHistoryStore((state) => state.list);
+  const updateTransactions = useHistoryStore(
+    (state) => state.updateTransactions
+  );
+
+  useEffect(() => {
+    handleGetTransactionData(TRANSACTION_DATA, updateTransactions);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div>
