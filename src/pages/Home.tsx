@@ -1,16 +1,19 @@
 import { useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { useHistoryStore } from "../store/History";
-import { FaUser } from "react-icons/fa";
-import { RiArrowDropDownLine } from "react-icons/ri";
+import { useQuery } from "@apollo/client";
 
 import { TRANSACTION_TYPE } from "../types";
+import { handleGetTransactionData } from "../helpers";
+// import { TRANSACTION_DATA } from "../utils/transactions";
+import { GET_TRANSACTIONS } from "../queries/transaction.query";
 
 import Header from "../components/Header";
 import TotalContent from "../components/TotalContent";
 import HistoryCard from "../components/HistoryCard";
-import { handleGetTransactionData } from "../helpers";
-import { TRANSACTION_DATA } from "../utils/transactions";
+
+import { FaUser } from "react-icons/fa";
+import { RiArrowDropDownLine } from "react-icons/ri";
 
 const Home = () => {
   const histories = useHistoryStore((state) => state.list);
@@ -18,10 +21,17 @@ const Home = () => {
     (state) => state.updateTransactions
   );
 
+  const { data: transactionsQuery } = useQuery(GET_TRANSACTIONS);
+
   useEffect(() => {
-    handleGetTransactionData(TRANSACTION_DATA, updateTransactions);
+    if (transactionsQuery) {
+      handleGetTransactionData(
+        transactionsQuery?.transactions,
+        updateTransactions
+      );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [transactionsQuery]);
 
   return (
     <div>
