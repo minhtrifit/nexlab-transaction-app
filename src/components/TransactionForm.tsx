@@ -1,21 +1,52 @@
+import { useMemo, useState } from "react";
+
 import { TRANSACTION_TYPE } from "../types";
 import { CATEGORIES } from "../utils/categories";
+
 import CustomBtn from "./CustomBtn";
+import { formatDateInput, getCategoryByValue } from "../helpers";
 
 interface PropType {
-  form: TRANSACTION_TYPE;
-  setForm: React.Dispatch<React.SetStateAction<TRANSACTION_TYPE>>;
-  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  // form: TRANSACTION_TYPE;
+  // setForm: React.Dispatch<React.SetStateAction<TRANSACTION_TYPE>>;
+  formDefaultValue: TRANSACTION_TYPE | null;
+  handleSubmit: (
+    e: React.FormEvent<HTMLFormElement>,
+    form: TRANSACTION_TYPE,
+    setForm: React.Dispatch<React.SetStateAction<TRANSACTION_TYPE>>
+  ) => Promise<void>;
 }
 
 const TransactionForm = (props: PropType) => {
-  const { form, setForm, handleSubmit } = props;
+  const { formDefaultValue, handleSubmit } = props;
+
+  console.log("FORM DEFAULT VALUE:", formDefaultValue);
+
+  const today = new Date();
+
+  const category = useMemo(() => {
+    if (!formDefaultValue) return null;
+
+    return getCategoryByValue(formDefaultValue?.category);
+  }, [formDefaultValue]);
+
+  const [form, setForm] = useState<TRANSACTION_TYPE>({
+    id: formDefaultValue !== null ? formDefaultValue?.id : undefined,
+    name: formDefaultValue !== null ? formDefaultValue?.name : "",
+    type: formDefaultValue !== null ? formDefaultValue?.type : "out",
+    category: category !== null ? category?.value : CATEGORIES.gym.value,
+    date:
+      formDefaultValue !== null
+        ? formatDateInput(formDefaultValue?.date)
+        : today.toISOString().split("T")[0],
+    amount: formDefaultValue !== null ? formDefaultValue?.amount : 0,
+  });
 
   return (
     <form
       className="my-5 w-full flex flex-col gap-3"
       onSubmit={(e) => {
-        handleSubmit(e);
+        handleSubmit(e, form, setForm);
       }}
     >
       <label

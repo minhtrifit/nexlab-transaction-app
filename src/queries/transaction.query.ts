@@ -26,6 +26,15 @@ export const GET_TRANSACTION_BY_ID = gql`
   }
 `;
 
+export const GET_CATEGORIES = gql`
+  query GetCategories {
+    categories {
+      name
+      value
+    }
+  }
+`;
+
 export const DELETE_TRANSACTION = gql`
   mutation DeleteTransaction($id: ID!) {
     deleteTransaction(id: $id)

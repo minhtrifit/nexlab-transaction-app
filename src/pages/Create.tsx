@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 // import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import useScrollToRef from "../hooks/useScrollToRef";
@@ -25,15 +25,11 @@ const Create = () => {
 
   const [targetRef, scrollToTarget] = useScrollToRef();
 
-  const [form, setForm] = useState<TRANSACTION_TYPE>({
-    name: "",
-    type: "out",
-    category: CATEGORIES.gym.value,
-    date: today.toISOString().split("T")[0],
-    amount: 0,
-  });
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+    form: TRANSACTION_TYPE,
+    setForm: React.Dispatch<React.SetStateAction<TRANSACTION_TYPE>>
+  ) => {
     e.preventDefault();
 
     try {
@@ -81,11 +77,7 @@ const Create = () => {
         <h1 className="text-xl font-bold text-primary-green text-center">
           Create New Transaction
         </h1>
-        <TransactionForm
-          form={form}
-          setForm={setForm}
-          handleSubmit={handleSubmit}
-        />
+        <TransactionForm formDefaultValue={null} handleSubmit={handleSubmit} />
       </section>
     </div>
   );

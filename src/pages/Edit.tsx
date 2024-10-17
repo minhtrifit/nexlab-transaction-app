@@ -1,12 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { toast } from "react-toastify";
 // import { useHistoryStore } from "../store/History";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery } from "@apollo/client";
 
 import { TRANSACTION_TYPE } from "../types";
-import { CATEGORIES } from "../utils/categories";
-import { formatDate, formatDateInput, getCategoryByValue } from "../helpers";
+import { formatDate } from "../helpers";
 import {
   GET_TRANSACTION_BY_ID,
   UPDATE_TRANSACTION,
@@ -17,8 +16,6 @@ import BackBtn from "../components/BackBtn";
 import TransactionForm from "../components/TransactionForm";
 
 const Edit = () => {
-  const today = new Date();
-
   const params = useParams();
   const navigate = useNavigate();
 
@@ -34,33 +31,10 @@ const Edit = () => {
     return detailTransData?.transaction;
   }, [detailTransData]);
 
-  const [form, setForm] = useState<TRANSACTION_TYPE>({
-    id: trans?.id ? trans?.id : "",
-    name: trans?.name ? trans?.name : "",
-    type: trans?.type ? trans?.type : "out",
-    category: trans?.category ? trans?.category : CATEGORIES.gym.value,
-    date: trans?.date
-      ? formatDateInput(trans?.date)
-      : today.toISOString().split("T")[0],
-    amount: 0,
-  });
-
-  const handleGetEditTransaction = () => {
-    if (trans) {
-      const category = getCategoryByValue(trans.category);
-
-      setForm({
-        id: trans.id,
-        name: trans.name,
-        type: trans.type,
-        category: category.value,
-        date: formatDateInput(trans.date),
-        amount: trans.amount,
-      });
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+    form: TRANSACTION_TYPE
+  ) => {
     e.preventDefault();
 
     try {
@@ -71,8 +45,6 @@ const Edit = () => {
       };
 
       if (updatedTransaction?.id) {
-        // console.log(updatedTransaction);
-
         const { data } = await updateTransaction({
           variables: updatedTransaction,
         });
@@ -88,11 +60,6 @@ const Edit = () => {
     }
   };
 
-  useEffect(() => {
-    if (params?.id) handleGetEditTransaction();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params, trans]);
-
   return (
     <div>
       <Header>
@@ -104,8 +71,7 @@ const Edit = () => {
         </h1>
         {!loading && (
           <TransactionForm
-            form={form}
-            setForm={setForm}
+            formDefaultValue={trans}
             handleSubmit={handleSubmit}
           />
         )}
