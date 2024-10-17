@@ -83,3 +83,16 @@ export const handleGetTransactionData = async (
     updateTransactions(res);
   }
 };
+
+export const handleGetTotalAmountByType = (
+  list: TRANSACTION_TYPE[],
+  type: "in" | "out"
+) => {
+  const total = list
+    .filter((transaction: TRANSACTION_TYPE) => transaction.type === type)
+    .reduce(
+      (sum: number, transaction: TRANSACTION_TYPE) => sum + transaction.amount,
+      0
+    );
+  return total;
+};

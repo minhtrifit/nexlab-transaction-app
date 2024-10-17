@@ -69,7 +69,7 @@ export const useHistoryStore = create<HistoryState>()(
         const targetTrans = list[transactionIndex];
         const updatedList = list.filter((transaction) => transaction.id !== id);
 
-        await saveLocalStorage("transactions", updatedList);
+        // await saveLocalStorage("transactions", updatedList);
         set((_) => ({ list: updatedList }));
 
         return targetTrans;

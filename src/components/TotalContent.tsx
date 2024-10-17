@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useHistoryStore } from "../store/History";
+import { useMemo, useState } from "react";
+import { useQuery } from "@apollo/client";
 import { Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 
@@ -8,33 +8,26 @@ import {
   chartOptions,
   chartSpendingData,
 } from "../utils/chart";
-import { formatNumber } from "../helpers";
+import { formatNumber, handleGetTotalAmountByType } from "../helpers";
+import { GET_TRANSACTIONS } from "../queries/transaction.query";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const TotalContent = () => {
-  const [total, setTotal] = useState<number>(0);
-  const [view, setView] = useState<"spending" | "income">("spending");
+  const { data: transactionsData } = useQuery(GET_TRANSACTIONS);
 
-  const histories = useHistoryStore((state) => state.list);
-  const getTotalAmountByType = useHistoryStore(
-    (state) => state.getTotalAmountByType
-  );
+  const [view, setView] = useState<"spending" | "income">("spending");
 
   const handleSetView = (view: "spending" | "income") => {
     setView(view);
   };
 
-  useEffect(() => {
-    if (view === "spending") {
-      const totalValue = getTotalAmountByType("in");
-      setTotal(totalValue);
-    } else if (view === "income") {
-      const totalValue = getTotalAmountByType("out");
-      setTotal(totalValue);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [histories, view]);
+  const total = useMemo(() => {
+    return handleGetTotalAmountByType(
+      transactionsData?.transactions,
+      view === "spending" ? "in" : "out"
+    );
+  }, [transactionsData, view]);
 
   return (
     <div className="flex flex-col items-center gap-3">

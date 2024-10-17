@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+// import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
-import { useHistoryStore } from "../store/History";
 import useScrollToRef from "../hooks/useScrollToRef";
 
 import { TRANSACTION_TYPE } from "../types";
@@ -11,13 +10,20 @@ import { formatDate } from "../helpers";
 import Header from "../components/Header";
 import BackBtn from "../components/BackBtn";
 import TransactionForm from "../components/TransactionForm";
+import { useMutation } from "@apollo/client";
+import {
+  CREATE_TRANSACTION,
+  GET_TRANSACTIONS,
+} from "../queries/transaction.query";
 
 const Create = () => {
   const today = new Date();
 
-  const [targetRef, scrollToTarget] = useScrollToRef();
+  const [createTransaction] = useMutation(CREATE_TRANSACTION, {
+    refetchQueries: [{ query: GET_TRANSACTIONS }],
+  });
 
-  const addTransaction = useHistoryStore((state) => state.addTransaction);
+  const [targetRef, scrollToTarget] = useScrollToRef();
 
   const [form, setForm] = useState<TRANSACTION_TYPE>({
     name: "",
@@ -30,30 +36,35 @@ const Create = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const newTransaction = {
-      ...form,
-      id: uuidv4(),
-      amount: Number(form.amount),
-      date: formatDate(form.date),
-    };
+    try {
+      const newTransaction = {
+        ...form,
+        // id: uuidv4(),
+        amount: Number(form.amount),
+        date: formatDate(form.date),
+      };
 
-    const res = await addTransaction(newTransaction);
-    console.log("CREATE TRANS:", res);
+      const { data } = await createTransaction({
+        variables: newTransaction,
+      });
 
-    // Notification
-    if (res !== null) toast.success("Create new transaction successfully");
-    else toast.error("Create new transaction failed");
+      console.log("Transaction created:", data);
+      toast.success("Create transaction successfully");
 
-    scrollToTarget();
+      scrollToTarget();
 
-    // Reset form
-    setForm({
-      name: "",
-      type: "out",
-      category: CATEGORIES.gym.value,
-      date: today.toISOString().split("T")[0],
-      amount: 0,
-    });
+      // Reset form
+      setForm({
+        name: "",
+        type: "out",
+        category: CATEGORIES.gym.value,
+        date: today.toISOString().split("T")[0],
+        amount: 0,
+      });
+    } catch (error) {
+      toast.error("Create transaction failed");
+      console.log("Create transaction failed:", error);
+    }
   };
 
   useEffect(() => {

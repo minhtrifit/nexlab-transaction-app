@@ -1,17 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { useHistoryStore } from "../store/History";
+// import { useHistoryStore } from "../store/History";
 import { useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQuery } from "@apollo/client";
 
 import { TRANSACTION_TYPE } from "../types";
 import { CATEGORIES } from "../utils/categories";
-import { TRANSACTION_DATA } from "../utils/transactions";
+import { formatDate, formatDateInput, getCategoryByValue } from "../helpers";
 import {
-  formatDate,
-  formatDateInput,
-  getCategoryByValue,
-  handleGetTransactionData,
-} from "../helpers";
+  GET_TRANSACTION_BY_ID,
+  UPDATE_TRANSACTION,
+} from "../queries/transaction.query";
 
 import Header from "../components/Header";
 import BackBtn from "../components/BackBtn";
@@ -23,39 +22,40 @@ const Edit = () => {
   const params = useParams();
   const navigate = useNavigate();
 
-  const transactions = useHistoryStore((state) => state.list);
-  const getTransactionById = useHistoryStore(
-    (state) => state.getTransactionById
-  );
-  const updateTransactions = useHistoryStore(
-    (state) => state.updateTransactions
-  );
+  const { data: detailTransData, loading } = useQuery(GET_TRANSACTION_BY_ID, {
+    variables: { id: params?.id },
+    fetchPolicy: "network-only",
+  });
+  const [updateTransaction] = useMutation(UPDATE_TRANSACTION);
 
-  const updateTransactionsById = useHistoryStore(
-    (state) => state.updateTransactionsById
-  );
+  const trans: TRANSACTION_TYPE | null = useMemo(() => {
+    if (!detailTransData) return null;
+
+    return detailTransData?.transaction;
+  }, [detailTransData]);
 
   const [form, setForm] = useState<TRANSACTION_TYPE>({
-    id: "",
-    name: "",
-    type: "out",
-    category: CATEGORIES.gym.value,
-    date: today.toISOString().split("T")[0],
+    id: trans?.id ? trans?.id : "",
+    name: trans?.name ? trans?.name : "",
+    type: trans?.type ? trans?.type : "out",
+    category: trans?.category ? trans?.category : CATEGORIES.gym.value,
+    date: trans?.date
+      ? formatDateInput(trans?.date)
+      : today.toISOString().split("T")[0],
     amount: 0,
   });
 
-  const handleGetEditTransaction = (id: string) => {
-    const transaction = getTransactionById(id);
-    if (transaction) {
-      const category = getCategoryByValue(transaction.category);
+  const handleGetEditTransaction = () => {
+    if (trans) {
+      const category = getCategoryByValue(trans.category);
 
       setForm({
-        id: transaction.id,
-        name: transaction.name,
-        type: transaction.type,
+        id: trans.id,
+        name: trans.name,
+        type: trans.type,
         category: category.value,
-        date: formatDateInput(transaction.date),
-        amount: transaction.amount,
+        date: formatDateInput(trans.date),
+        amount: trans.amount,
       });
     }
   };
@@ -63,41 +63,35 @@ const Edit = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const updatedTransaction = {
-      ...form,
-      amount: Number(form.amount),
-      date: formatDate(form.date),
-    };
+    try {
+      const updatedTransaction = {
+        ...form,
+        amount: Number(form.amount),
+        date: formatDate(form.date),
+      };
 
-    if (updatedTransaction?.id) {
-      // console.log(updatedTransaction);
+      if (updatedTransaction?.id) {
+        // console.log(updatedTransaction);
 
-      const res = await updateTransactionsById(
-        updatedTransaction?.id,
-        updatedTransaction
-      );
+        const { data } = await updateTransaction({
+          variables: updatedTransaction,
+        });
 
-      console.log("EDIT TRANS", res);
+        console.log("Transaction updated:", data);
 
-      if (res !== null) {
+        toast.success("Edit transaction successfully");
         navigate(`/detail/${updatedTransaction?.id}`);
-        toast.success("Update transaction successfully");
-      } else {
-        toast.error("Update transaction failed");
       }
+    } catch (error) {
+      toast.error("Edit transaction failed");
+      console.log("Edit transaction failed:", error);
     }
   };
 
   useEffect(() => {
-    handleGetTransactionData(TRANSACTION_DATA, updateTransactions);
+    if (params?.id) handleGetEditTransaction();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (params?.id) handleGetEditTransaction(params?.id);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params, transactions]);
+  }, [params, trans]);
 
   return (
     <div>
@@ -108,11 +102,13 @@ const Edit = () => {
         <h1 className="text-xl font-bold text-primary-green text-center">
           Edit Transaction
         </h1>
-        <TransactionForm
-          form={form}
-          setForm={setForm}
-          handleSubmit={handleSubmit}
-        />
+        {!loading && (
+          <TransactionForm
+            form={form}
+            setForm={setForm}
+            handleSubmit={handleSubmit}
+          />
+        )}
       </section>
     </div>
   );
