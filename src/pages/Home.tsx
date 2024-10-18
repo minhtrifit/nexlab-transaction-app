@@ -17,8 +17,11 @@ import { FaUser } from "react-icons/fa";
 import { RiArrowDropDownLine } from "react-icons/ri";
 
 const Home = () => {
-  const { data: transactionsData, loading: transactionsLoading } =
-    useQuery(GET_TRANSACTIONS);
+  const {
+    data: transactionsData,
+    loading: transactionsLoading,
+    error: transactionError,
+  } = useQuery(GET_TRANSACTIONS);
 
   console.log(transactionsData);
 
@@ -31,6 +34,21 @@ const Home = () => {
       })
     );
   }, [transactionsData]); // computed when transactionsData changed
+
+  if (transactionError)
+    return (
+      <div>
+        <Header>
+          <FaUser size={15} />
+          <span className="text-sm font-semibold">Hello: Trí</span>
+        </Header>
+        <section>
+          <h1 className="mt-10 text-center text-xl font-bold text-primary-green">
+            Get transaction failed
+          </h1>
+        </section>
+      </div>
+    );
 
   return (
     <div>
